@@ -14,3 +14,13 @@ class TestAccount:
         account_long = Account("Joe", "Dohn", "012345678901")
         assert account_long.pesel == "Invalid"
         account_not_digit = Account("John", "Doe", "abc34567890")
+    def test_promo_code_validation(self):
+        account = Account("John", "Doe", "01234567890", "PROM_XYZ")
+        assert account.balance == 50
+        account = Account("John", "Doe", "01234567890", "PKOM_XYZ")
+        assert account.balance == 0
+        account = Account("John", "Doe", "01234567890", "PROM_WXYZ")
+        assert account.balance == 0
+        account = Account("John", "Doe", "01234567890", "PROM_XY")
+        assert account.balance == 0
+

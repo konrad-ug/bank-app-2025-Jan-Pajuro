@@ -23,4 +23,14 @@ class TestAccount:
         assert account.balance == 0
         account = Account("John", "Doe", "01234567890", "PROM_XY")
         assert account.balance == 0
+    def test_user_age(self):
+        account = Account("John", "Doe", "61034567890", "PROM_XYZ")
+        assert account.balance == 50
+        account = Account("John", "Doe", "60034567890", "PROM_XYZ")
+        assert account.balance == 0
+        account = Account("John", "Doe", "61834567890", "PROM_XYZ")
+        assert account.balance == 0
+        account = Account("John", "Doe", "60234567890", "PROM_XYZ")
+        assert account.balance == 50
+
 

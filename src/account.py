@@ -13,3 +13,9 @@ class Account:
         return promo and len(promo) == 8 and promo[:5] == "PROM_" and self.is_user_not_to_old()
     def is_user_not_to_old(self):
         return (int(self.pesel[:2]) > 60 and self.pesel[2] == "0") or self.pesel[2] in ["2", "4", "6"]
+    def transfer_in(self, ammount):
+        if not isinstance(ammount, str) and ammount > 0:
+            self.balance += ammount
+    def transfer_out(self, ammount):
+        if not isinstance(ammount, str) and ammount > 0 and self.balance >= ammount:
+            self.balance -= ammount

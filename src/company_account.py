@@ -8,3 +8,5 @@ class CompanyAccount(Account):
             self.nip = nip
         else:
             self.nip = "Invalid"
+    def instant_fee(self):
+        return 5

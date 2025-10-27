@@ -1,9 +1,19 @@
+from abc import ABC, abstractmethod
+
 class Account:
     def __init__(self):
         self.balance = 0
+    @abstractmethod
+    def instant_fee(self):
+        pass
     def transfer_in(self, ammount):
-        if not isinstance(ammount, str) and ammount > 0:
+        if self.ammount_valid(ammount):
             self.balance += ammount
     def transfer_out(self, ammount):
-        if not isinstance(ammount, str) and ammount > 0 and self.balance >= ammount:
+        if self.ammount_valid(ammount) and self.balance >= ammount:
             self.balance -= ammount
+    def instant_transfer(self, ammount):
+        if self.ammount_valid(ammount) and self.balance >= ammount:
+            self.balance -= ammount + self.instant_fee()
+    def ammount_valid(self, ammount):
+        return not isinstance(ammount, str) and ammount > 0

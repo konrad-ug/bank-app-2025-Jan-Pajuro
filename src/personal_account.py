@@ -15,3 +15,5 @@ class PersonalAccount(Account):
         return promo and len(promo) == 8 and promo[:5] == "PROM_" and self.is_user_not_to_old()
     def is_user_not_to_old(self):
         return (int(self.pesel[:2]) > 60 and self.pesel[2] == "0") or self.pesel[2] in ["2", "4", "6"]
+    def instant_fee(self):
+        return 1

@@ -86,3 +86,30 @@ class TestCompany:
     def test_nip_is_digit(self):
         account = CompanyAccount("company", "abcdefghij")
         assert account.nip == "Invalid"
+
+class TestInstantTransfer:
+    def test_instant_transfer_personal(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer(30)
+        assert account.balance == 19
+    def test_instant_transfer_company(self):
+        account = CompanyAccount("company", "0123456789")
+        account.transfer_in(50)
+        account.instant_transfer(30)
+        assert account.balance == 15
+    def test_instant_transfer_entirety(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer(50)
+        assert account.balance == -1
+    def test_instant_transfer_negative(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer(-50)
+        assert account.balance == 50
+    def test_instant_transfer_is_digit(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer("ouberub")
+        assert account.balance == 50
+    def test_instant_transfer_below_balance(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer(51)
+        assert account.balance == 50

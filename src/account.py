@@ -5,7 +5,7 @@ class Account:
         self.balance = 0
     @abstractmethod
     def instant_fee(self):
-        pass
+        """ Abstract method, doesn't need testing """
     def transfer_in(self, ammount):
         if self.ammount_valid(ammount):
             self.balance += ammount

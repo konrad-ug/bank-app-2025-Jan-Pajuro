@@ -113,3 +113,35 @@ class TestInstantTransfer:
         account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
         account.instant_transfer(51)
         assert account.balance == 50
+
+class TestOperationHistory:
+    def test_history_in(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.transfer_in(50)
+        assert account.history == [50]
+    def test_history_out(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.transfer_out(50)
+        assert account.history == [-50]
+    def test_history_out_below_balance(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.transfer_out(100)
+        assert account.history == []
+    def test_history_instant_personal(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer(30)
+        assert account.history == [-30, -1]
+    def test_history_instant_company(self):
+        account = CompanyAccount("company", "0123456789")
+        account.transfer_in(50)
+        account.instant_transfer(30)
+        assert account.history == [50, -30, -5]
+    def test_history_instant_below_balance(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.instant_transfer(51)
+        assert account.history == []
+    def test_history_consecutive_transfers(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        account.transfer_in(500)
+        account.instant_transfer(300)
+        assert account.history == [500, -300, -1]

@@ -1,5 +1,6 @@
 from src.personal_account import PersonalAccount
 from src.company_account import CompanyAccount
+import pytest
 
 class TestAccount:
     def test_account_creation(self):
@@ -145,3 +146,49 @@ class TestOperationHistory:
         account.transfer_in(500)
         account.instant_transfer(300)
         assert account.history == [500, -300, -1]
+
+class TestLoan:
+
+    @pytest.fixture
+    def account(self):
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        return account
+
+
+    def test_loan_in(self, account):
+        account.transfer_in(40)
+        account.transfer_in(300)
+        account.transfer_in(70)
+        assert account.submit_for_loan(100) == True
+        assert account.balance == 560
+    def test_loan_greater(self, account):
+        account.transfer_in(300)
+        account.transfer_out(40)
+        account.instant_transfer(70)
+        account.transfer_out(80)
+        assert account.submit_for_loan(100) == True
+        assert account.balance == 259
+    def test_loan_not_enough_transactions_3(self, account):
+        account.transfer_in(300)
+        account.transfer_in(40)
+        assert account.submit_for_loan(100) == False
+        assert account.balance == 390
+    def test_loan_3_not_in(self, account):
+        account.transfer_out(40)
+        account.transfer_in(300)
+        account.transfer_in(70)
+        assert account.submit_for_loan(100) == False
+        assert account.balance == 380
+    def test_loan_not_enough_transactions_5(self, account):
+        account.transfer_in(300)
+        account.transfer_out(40)
+        account.instant_transfer(70)
+        assert account.submit_for_loan(100) == False
+        assert account.balance == 239
+    def test_loan_5_not_greater(self, account):
+        account.transfer_in(300)
+        account.transfer_out(40)
+        account.instant_transfer(70)
+        account.transfer_out(80)
+        assert account.submit_for_loan(110) == False
+        assert account.balance == 159

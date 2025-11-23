@@ -2,6 +2,11 @@ from src.personal_account import PersonalAccount
 from src.company_account import CompanyAccount
 import pytest
 
+@pytest.fixture
+def account():
+        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+        return account
+
 class TestAccount:
     def test_account_creation(self):
         account = PersonalAccount("John", "Doe", "12345678910")
@@ -9,127 +14,108 @@ class TestAccount:
         assert account.last_name == "Doe"
         assert account.balance == 0
         assert account.pesel == "12345678910"
-    def test_pesel_too_short(self):
-        account = PersonalAccount("John", "Doe", "0123456789")
-        assert account.pesel == "Invalid"
-    def test_pesel_too_long(self):
-        account = PersonalAccount("Joe", "Dohn", "012345678901")
-        assert account.pesel == "Invalid"
-    def test_pesel_is_digit(self):
-        account = PersonalAccount("John", "Doe", "abc34567890")
-        assert account.pesel == "Invalid"
-    def test_promo_code_validation(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        assert account.balance == 50
-    def test_promo_code_prefix(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PKOM_XYZ")
-        assert account.balance == 0
-    def test_promo_code_too_long(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_WXYZ")
-        assert account.balance == 0
-    def test_promo_code_too_short(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XY")
-        assert account.balance == 0
-    def test_user_age(self):
-        account = PersonalAccount("John", "Doe", "61034567890", "PROM_XYZ")
-        assert account.balance == 50
-    def test_user_age_too_old(self):
-        account = PersonalAccount("John", "Doe", "60034567890", "PROM_XYZ")
-        assert account.balance == 0
-    def test_user_age_1800s(self):
-        account = PersonalAccount("John", "Doe", "61834567890", "PROM_XYZ")
-        assert account.balance == 0
-    def test_user_age_2000s(self):
-        account = PersonalAccount("John", "Doe", "60234567890", "PROM_XYZ")
-        assert account.balance == 50
 
-class TestTransfer:
-    def test_transfer_in(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_in(50)        
-        assert account.balance == 100
-    def test_transfer_in_negative(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_in(-50)
-        assert account.balance == 50
-    def test_transfer_in_is_digit(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_in("herofhier")
-        assert account.balance == 50
-    def test_transfer_out(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_out(50)
-        assert account.balance == 0
-    def test_transfer_out_negative(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_out(-50)
-        assert account.balance == 50
-    def test_transfer_out_is_digit(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_out("ouberub")
-        assert account.balance == 50
-    def test_transfer_out_below_balance(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.transfer_out(100)
-        assert account.balance == 50
+    @pytest.mark.parametrize("pesel, expected", [
+        ("0123456789", "Invalid"),
+        ("012345678901", "Invalid"),
+        ("abc34567890", "Invalid")
+    ])
+    def test_pesel(self, pesel, expected):
+        account = PersonalAccount("John", "Doe", pesel)
+        assert account.pesel == expected
+
+
+class TestPromoCode:
+
+    @pytest.mark.parametrize("promo, expected", [
+        ("PROM_XYZ", 50),
+        ("PKOM_XYZ", 0),
+        ("PROM_WXYZ", 0),
+        ("PROM_XY", 0)
+    ])
+    def test_promo_code(self, promo, expected):
+        account = PersonalAccount("John", "Doe", "01234567890", promo)
+        assert account.balance == expected
+
+class TestUserAge:
+
+    @pytest.mark.parametrize("pesel, expected", [
+        ("61034567890", 50),
+        ("60034567890", 0),
+        ("61834567890", 0),
+        ("60234567890", 50)
+    ])
+    def test_user_age(self, pesel, expected):
+        account = PersonalAccount("John", "Doe", pesel, "PROM_XYZ")
+        assert account.balance == expected
+
+class TestTransferIn:
+
+    @pytest.mark.parametrize("amount, expected", [
+        (50, 100),
+        (-50, 50),
+        ("herofhier", 50)
+    ])
+    def test_transfer_in(self, account, amount, expected):
+        account.transfer_in(amount)        
+        assert account.balance == expected
+
+class TestTransferOut:
+
+    @pytest.mark.parametrize("amount, expected", [
+        (50, 0),
+        (-50, 50),
+        ("ouberub", 50),
+        (100, 50)
+    ])
+    def test_transfer_out(self, account, amount, expected):
+        account.transfer_out(amount)
+        assert account.balance == expected
 
 class TestCompany:
     def test_account_creation(self):
         account = CompanyAccount("company", "0123456789")
         assert account.company_name == "company"
         assert account.nip == "0123456789"
-    def test_nip_too_short_(self):
-        account = CompanyAccount("company", "012345678")
-        assert account.nip == "Invalid"
-    def test_nip_too_long(self):
-        account = CompanyAccount("company", "01234567890")
-        assert account.nip == "Invalid"
-    def test_nip_is_digit(self):
-        account = CompanyAccount("company", "abcdefghij")
+    
+    @pytest.mark.parametrize("nip", [
+        ("012345678"),
+        ("01234567890"),
+        ("abcdefghij")
+    ])
+    def test_nip(self, nip):
+        account = CompanyAccount("company", nip)
         assert account.nip == "Invalid"
 
 class TestInstantTransfer:
-    def test_instant_transfer_personal(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.instant_transfer(30)
-        assert account.balance == 19
+
+    @pytest.mark.parametrize("amount, expected", [
+        (30, 19),
+        (50, -1),
+        (-50, 50),
+        ("ouberub", 50),
+        (51, 50)
+    ])
+    def test_instant_transfer_personal(self, account, amount, expected):
+        account.instant_transfer(amount)
+        assert account.balance == expected
     def test_instant_transfer_company(self):
         account = CompanyAccount("company", "0123456789")
         account.transfer_in(50)
         account.instant_transfer(30)
         assert account.balance == 15
-    def test_instant_transfer_entirety(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.instant_transfer(50)
-        assert account.balance == -1
-    def test_instant_transfer_negative(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.instant_transfer(-50)
-        assert account.balance == 50
-    def test_instant_transfer_is_digit(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.instant_transfer("ouberub")
-        assert account.balance == 50
-    def test_instant_transfer_below_balance(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        account.instant_transfer(51)
-        assert account.balance == 50
 
 class TestOperationHistory:
-    def test_history_in(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+    def test_history_in(self, account):
         account.transfer_in(50)
         assert account.history == [50]
-    def test_history_out(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+    def test_history_out(self, account):
         account.transfer_out(50)
         assert account.history == [-50]
-    def test_history_out_below_balance(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+    def test_history_out_below_balance(self, account):
         account.transfer_out(100)
         assert account.history == []
-    def test_history_instant_personal(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+    def test_history_instant_personal(self, account):
         account.instant_transfer(30)
         assert account.history == [-30, -1]
     def test_history_instant_company(self):
@@ -137,24 +123,15 @@ class TestOperationHistory:
         account.transfer_in(50)
         account.instant_transfer(30)
         assert account.history == [50, -30, -5]
-    def test_history_instant_below_balance(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+    def test_history_instant_below_balance(self, account):
         account.instant_transfer(51)
         assert account.history == []
-    def test_history_consecutive_transfers(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
+    def test_history_consecutive_transfers(self, account):
         account.transfer_in(500)
         account.instant_transfer(300)
         assert account.history == [500, -300, -1]
 
 class TestLoan:
-
-    @pytest.fixture
-    def account(self):
-        account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
-        return account
-
-
     def test_loan_in(self, account):
         account.transfer_in(40)
         account.transfer_in(300)

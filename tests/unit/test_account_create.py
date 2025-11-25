@@ -1,11 +1,17 @@
 from src.personal_account import PersonalAccount
 from src.company_account import CompanyAccount
+from src.account_registry import AccountRegistry
 import pytest
 
 @pytest.fixture
 def account():
         account = PersonalAccount("John", "Doe", "01234567890", "PROM_XYZ")
         return account
+
+@pytest.fixture
+def company():
+    company = CompanyAccount("company", "0123456789")
+    return company
 
 class TestAccount:
     def test_account_creation(self):
@@ -73,8 +79,8 @@ class TestTransferOut:
         assert account.balance == expected
 
 class TestCompany:
-    def test_account_creation(self):
-        account = CompanyAccount("company", "0123456789")
+    def test_account_creation(self, company):
+        account = company
         assert account.company_name == "company"
         assert account.nip == "0123456789"
     
@@ -99,8 +105,8 @@ class TestInstantTransfer:
     def test_instant_transfer_personal(self, account, amount, expected):
         account.instant_transfer(amount)
         assert account.balance == expected
-    def test_instant_transfer_company(self):
-        account = CompanyAccount("company", "0123456789")
+    def test_instant_transfer_company(self, company):
+        account = company
         account.transfer_in(50)
         account.instant_transfer(30)
         assert account.balance == 15
@@ -118,8 +124,8 @@ class TestOperationHistory:
     def test_history_instant_personal(self, account):
         account.instant_transfer(30)
         assert account.history == [-30, -1]
-    def test_history_instant_company(self):
-        account = CompanyAccount("company", "0123456789")
+    def test_history_instant_company(self, company):
+        account = company
         account.transfer_in(50)
         account.instant_transfer(30)
         assert account.history == [50, -30, -5]
@@ -131,7 +137,7 @@ class TestOperationHistory:
         account.instant_transfer(300)
         assert account.history == [500, -300, -1]
 
-class TestLoan:
+class TestPersonalLoan:
     def test_loan_in(self, account):
         account.transfer_in(40)
         account.transfer_in(300)
@@ -169,3 +175,55 @@ class TestLoan:
         account.transfer_out(80)
         assert account.submit_for_loan(110) == False
         assert account.balance == 159
+
+class TestCompanyLoan:
+
+    @pytest.mark.parametrize("amount_in, amount_out, loan, successful, balance", [
+        (3000, 1775, 612, True, 1837),
+        (2000, 1775, 150, False, 225),
+        (2000, 500, 700, False, 1500)
+    ])
+    def test_loan(self, company, amount_in, amount_out, loan, successful, balance):
+        company.transfer_in(amount_in)
+        company.transfer_out(amount_out)
+        assert company.take_loan(loan) == successful
+        assert company.balance == balance
+
+class TestAccountRegistry:
+
+    @pytest.fixture
+    def account1(self):
+        account1 = PersonalAccount("Jessica", "Horn", "37295017462")
+        return account1
+
+    @pytest.fixture
+    def account2(self):
+        account2 = PersonalAccount("Patrick", "Bateman", "76482908426")
+        return account2
+
+    @pytest.fixture
+    def registry(self):
+        registry = AccountRegistry()
+        return registry
+
+    @pytest.fixture
+    def filled_registry(self, registry, account, account1, account2):
+        registry.add_account(account)
+        registry.add_account(account1)
+        registry.add_account(account2)
+        return registry
+    
+    def test_registry_search(self, filled_registry, account1):
+        assert filled_registry.search("37295017462") == account1
+    def test_registry_return_all(self, filled_registry, account, account1, account2):
+        assert filled_registry.return_all() == [account, account1, account2]
+    def test_registry_count(self, filled_registry):
+        assert filled_registry.count() == 3
+    def test_registry_invalid_argument(self, registry):
+        registry.add_account("account")
+        assert registry.return_all() == []
+    def test_registry_Invalid_pesel(self, filled_registry):
+        assert filled_registry.search("1234567890") == "Invalid"
+    def test_registry_pesel_missing(self, filled_registry):
+        assert filled_registry.search("09876543210") == None
+

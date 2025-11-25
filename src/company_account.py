@@ -10,3 +10,8 @@ class CompanyAccount(Account):
             self.nip = "Invalid"
     def instant_fee(self):
         return 5
+    def take_loan(self, amount):
+        if -1775 in self.history and self.balance >= 2 * amount:
+            self.balance += amount
+            return True
+        return False

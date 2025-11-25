@@ -1,5 +1,6 @@
 from src.personal_account import PersonalAccount
 from src.company_account import CompanyAccount
+from src.account_registry import AccountRegistry
 import pytest
 
 @pytest.fixture
@@ -187,3 +188,42 @@ class TestCompanyLoan:
         company.transfer_out(amount_out)
         assert company.take_loan(loan) == successful
         assert company.balance == balance
+
+class TestAccountRegistry:
+
+    @pytest.fixture
+    def account1(self):
+        account1 = PersonalAccount("Jessica", "Horn", "37295017462")
+        return account1
+
+    @pytest.fixture
+    def account2(self):
+        account2 = PersonalAccount("Patrick", "Bateman", "76482908426")
+        return account2
+
+    @pytest.fixture
+    def registry(self):
+        registry = AccountRegistry()
+        return registry
+
+    @pytest.fixture
+    def filled_registry(self, registry, account, account1, account2):
+        registry.add_account(account)
+        registry.add_account(account1)
+        registry.add_account(account2)
+        return registry
+    
+    def test_registry_search(self, filled_registry, account1):
+        assert filled_registry.search("37295017462") == account1
+    def test_registry_return_all(self, filled_registry, account, account1, account2):
+        assert filled_registry.return_all() == [account, account1, account2]
+    def test_registry_count(self, filled_registry):
+        assert filled_registry.count() == 3
+    def test_registry_invalid_argument(self, registry):
+        registry.add_account("account")
+        assert registry.return_all() == []
+    def test_registry_Invalid_pesel(self, filled_registry):
+        assert filled_registry.search("1234567890") == "Invalid"
+    def test_registry_pesel_missing(self, filled_registry):
+        assert filled_registry.search("09876543210") == None
+

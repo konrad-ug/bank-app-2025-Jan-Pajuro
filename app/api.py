@@ -53,3 +53,7 @@ def delete_account(pesel):
         return jsonify({"error": "Account not found"}), 404
     registry.accounts.remove(account)
     return jsonify({"message": "Account deleted"}), 200
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200

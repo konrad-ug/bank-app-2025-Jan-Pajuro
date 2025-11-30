@@ -16,9 +16,7 @@ class AccountRegistry:
             for account in self.accounts:
                 if account.pesel == pesel:
                     return account
-            return None
-        else:
-            return "Invalid"
+        return None
 
     def return_all(self):
         return self.accounts

@@ -223,7 +223,7 @@ class TestAccountRegistry:
         registry.add_account("account")
         assert registry.return_all() == []
     def test_registry_Invalid_pesel(self, filled_registry):
-        assert filled_registry.search("1234567890") == "Invalid"
+        assert filled_registry.search("1234567890") == None
     def test_registry_pesel_missing(self, filled_registry):
         assert filled_registry.search("09876543210") == None
 
